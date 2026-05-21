@@ -5,29 +5,41 @@ import re
 
 class Expression:
     def __init__(self, plaintext = None, ttable_readable = None, sympy_expr = None, vars = None):
+        '''
+        Creates expression object and creates three basic representations to later be used to create different representations.
+        self.plaintext: string written by user or generated from expression. 
+        self.sympy_expr: sympy compatible expression, basic for operations
+        self.vars: Sympy compatible list of variables
+        self.ttable_readable: tuple of two lists, minterm indices and dontcare indices
+        '''
         if plaintext is not None:
             self.plaintext = plaintext
-            self.sympy_expr = text_to_logic(plaintext)
+            self.sympy_expr = self.text_to_logic(plaintext)
             self.vars = self.sympy_expr.atoms(sp.Symbol)
-            self.ttable_readable = get_minterms_and_dontcares( self.vars,self.sympy_expr)
+            self.ttable_readable = self.get_minterms_and_dontcares( self.vars,self.sympy_expr)
             self.Nand_form = None
         elif sympy_expr is not None:
             self.sympy_expr = sympy_expr
             self.vars = self.sympy_expr.atoms(sp.Symbol)
             self.plaintext = str(sympy_expr)
-            self.ttable_readable = get_minterms_and_dontcares( self.vars,self.sympy_expr)
+            self.ttable_readable = self.get_minterms_and_dontcares( self.vars,self.sympy_expr)
             self.Nand_form = None
         elif ttable_readable is not None and vars is not None:
             self.ttable_readable = ttable_readable
             self.vars = vars
             self.sympy_expr = sp.logic.boolalg.SOPform(vars, ttable_readable[0], ttable_readable[1])
             self.plaintext = str(self.sympy_expr)
+            
+            
             self.Nand_form = None
         else:
             raise ValueError("Invalid input: Provide either plaintext, sympy_expr, or ttable_readable with vars.")
             
     def logic_to_nand_style(self):
-
+        '''
+        converts normal sympy expression to one in format, that only uses Nand and Not
+        result is still numpy expressoin
+        '''
         expr = self.sympy_expr
         # 1. Base Case: If it's a variable, we're done
         if expr.is_Atom:
@@ -61,11 +73,13 @@ class Expression:
 
     
     def get_minterms_and_dontcares(self):
+        """
+        Evaluates a sympy expression to find combination of variables that result in True (minterms) and None (don't cares). Returns a tuple of two lists: (minterms, dontcares).
+        """
+
         expr = self.sympy_expr
         vars = self.vars
-        """
-        Evaluates a sympy expression to find minterm indices.
-        """
+        
         # Create a truth table: returns a list of result values (True/False/None)
         # The order follows the binary representation of the row index
         table = list(truth_table(vars, expr))
@@ -82,7 +96,6 @@ class Expression:
 
     def text_to_logic(self):
 
-        plaintext_expression = self.plaintext
         """
         onverts plaintext logic expressions into a format that can be processed by sympy, and extracts symbols as sympy Symbols.
 
@@ -101,6 +114,8 @@ class Expression:
         Outputs:
         - processed: A string with the logic expression converted to sympy format.
         """
+
+        plaintext_expression = self.plaintext
         # Change different logic symbols to format accepted by sympy
         substitutions = {
             '+': '|',
