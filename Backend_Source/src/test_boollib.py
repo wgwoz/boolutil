@@ -107,3 +107,17 @@ def test_logic_to_nand_style_or_conversion():
     expected = Nand(Not(A), Not(B))
     
     assert result == expected
+
+def test_logic_to_nand_style_complex_conversion():
+    """Test konwersji wielopoziomowej funkcji i walidacja końcowej tabeli prawdy."""
+    A, B, C = sp.symbols('A B C')
+    complex_expr = Or(A, And(B, C))
+    
+    result = logic_to_nand_style(complex_expr)
+    
+    # Porównujemy, czy wygenerowane drzewo NAND daje dokładnie te same wyniki logiczne w tabeli prawdy, co równanie początkowe.
+    original_outputs = list(truth_table(complex_expr, [A, B, C]))
+    nand_outputs = list(truth_table(result, [A, B, C]))
+    
+    assert original_outputs == nand_outputs
+
