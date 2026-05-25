@@ -29,3 +29,18 @@ def test_text_to_logic_basic_or():
     assert text_to_logic("A v B") == expected
     assert text_to_logic("A u B") == expected
     assert text_to_logic("A | B") == expected
+
+def test_text_to_logic_basic_not():
+    """Test negacji (NOT) dla różnych formatów zapisu."""
+    expected = Not(sp.Symbol('A'))
+    
+    assert text_to_logic("NOT A") == expected
+    assert text_to_logic("!A") == expected
+    assert text_to_logic("~A") == expected
+
+
+def test_text_to_logic_basic_xor():
+    """Test operacji XOR."""
+    expected = sp.logic.boolalg.Xor(sp.Symbol('A'), sp.Symbol('B'))
+    
+    assert text_to_logic("A XOR B") == expected
