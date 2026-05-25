@@ -72,29 +72,36 @@ class Expression:
         self.Nand_form = expr
 
     
-    def get_minterms_and_dontcares(self):
+    def get_minterms_and_dontcares(self, vars=None, expr=None):
         """
-        Evaluates a sympy expression to find combination of variables that result in True (minterms) and None (don't cares). Returns a tuple of two lists: (minterms, dontcares).
+        Evaluates a sympy expression to find combination of variables that result in True (minterms) and None (don't cares).
+        Returns a tuple of two lists: (minterms, dontcares). Accepts optional `vars` and `expr` to support external calls.
         """
 
-        expr = self.sympy_expr
-        vars = self.vars
-        
-        # Create a truth table: returns a list of result values (True/False/None)
-        # The order follows the binary representation of the row index
-        table = list(truth_table(vars, expr))
-        print(table)
-    
-        minterms = [i[0] for i in table if i[1] == True]
-        print(minterms)
+        expr = expr if expr is not None else getattr(self, "sympy_expr", None)
+        vars = vars if vars is not None else getattr(self, "vars", None)
 
-        dontcares = [i[0] for i  in table if i[1] == None]
-        print(dontcares)
+        if expr is None or vars is None:
+            raise ValueError("Expression and vars must be provided to evaluate truth table")
 
-        self.ttable_readable =  (minterms, dontcares)
+        # Debug: print types
+        # Create a truth table: returns rows as bit-vectors paired with output values.
+        table = list(truth_table(expr, list(vars)))
+
+        def row_to_index(row_bits):
+            if isinstance(row_bits, (list, tuple)):
+                return int(''.join(str(int(b)) for b in row_bits), 2)
+            return int(row_bits)
+
+        minterms = [row_to_index(row) for row, value in table if value is True]
+        dontcares = [row_to_index(row) for row, value in table if value is None]
+
+        self.ttable_readable = (minterms, dontcares)
+        return self.ttable_readable
 
 
-    def text_to_logic(self):
+
+    def text_to_logic(self, plaintext=None):
 
         """
         onverts plaintext logic expressions into a format that can be processed by sympy, and extracts symbols as sympy Symbols.
@@ -115,7 +122,9 @@ class Expression:
         - processed: A string with the logic expression converted to sympy format.
         """
 
-        plaintext_expression = self.plaintext
+        plaintext_expression = plaintext if plaintext is not None else getattr(self, "plaintext", None)
+        if plaintext_expression is None:
+            raise ValueError("No plaintext expression provided to text_to_logic")
         # Change different logic symbols to format accepted by sympy
         substitutions = {
             '+': '|',
@@ -166,6 +175,7 @@ class Expression:
         sympy_expr = sp.sympify(processed, locals=sym_dict)
 
         self.sympy_expr = sympy_expr
+        return sympy_expr
    
 
 if __name__ == "__main__":
