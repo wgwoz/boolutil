@@ -56,3 +56,16 @@ def test_text_to_logic_complex_expression():
     assert text_to_logic(expr1) == expected
     assert text_to_logic(expr2) == expected
 
+def test_text_to_logic_variable_naming():
+    """Test akceptacji poprawnych nazw zmiennych (litera + liczby)."""
+    expr = "A1 AND b123"
+    expected = And(sp.Symbol('A1'), sp.Symbol('b123'))
+    assert text_to_logic(expr) == expected
+
+
+def test_text_to_logic_whitespace_handling():
+    """Test odporności parsera na nieregularne odstępy i tabulacje."""
+    expr = "  A    AND\tB  "
+    expected = And(sp.Symbol('A'), sp.Symbol('B'))
+    assert text_to_logic(expr) == expected
+
