@@ -97,3 +97,13 @@ def test_logic_to_nand_style_and_conversion():
     expected = Not(And(inner, inner, evaluate=False), evaluate=False)
     
     assert result == expected
+
+def test_logic_to_nand_style_or_conversion():
+    """Test konwersji bramki OR na strukturę NAND: A | B -> ~(~A & ~B)"""
+    A, B = sp.symbols('A B')
+    expr_or = Or(A, B)
+    
+    result = logic_to_nand_style(expr_or)
+    expected = Nand(Not(A), Not(B))
+    
+    assert result == expected
