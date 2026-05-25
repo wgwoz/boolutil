@@ -19,8 +19,8 @@ app = FastAPI()
 class ExpressionIn(BaseModel):
     plaintext: Optional[str] = None
     sympy_expr: Optional[str] = None
-    vars: Optional[List[str]] = None
-    ttable_readable: Optional[Tuple[List[List[int]], List[List[int]]]] = None
+    vars: Optional[List[Optional[str]]] = None
+    ttable_readable: Optional[List[Optional[List[Optional[List[Optional[int]]]]]]] = None
 
 
 class ExpressionOut(BaseModel):
