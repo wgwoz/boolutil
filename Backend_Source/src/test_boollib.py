@@ -69,3 +69,18 @@ def test_text_to_logic_whitespace_handling():
     expected = And(sp.Symbol('A'), sp.Symbol('B'))
     assert text_to_logic(expr) == expected
 
+# ==============================================================================
+# SEKCJA 2: TESTY FUNKCJI logic_to_nand_style()
+# ==============================================================================
+
+def test_logic_to_nand_style_atom():
+    """Baza rekurencji: pojedyncza zmienna powinna zostać niezmieniona."""
+    A = sp.Symbol('A')
+    assert logic_to_nand_style(A) == A
+
+
+def test_logic_to_nand_style_double_negation():
+    """Test eliminacji podwójnej negacji: ~(~A) powinno uprościć się do A."""
+    A = sp.Symbol('A')
+    double_not = Not(Not(A))
+    assert logic_to_nand_style(double_not) == A
