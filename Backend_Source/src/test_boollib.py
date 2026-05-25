@@ -44,3 +44,15 @@ def test_text_to_logic_basic_xor():
     expected = sp.logic.boolalg.Xor(sp.Symbol('A'), sp.Symbol('B'))
     
     assert text_to_logic("A XOR B") == expected
+
+def test_text_to_logic_complex_expression():
+    """Test złożonego wyrażenia logicznego z nawiasami i priorytetami operatorów."""
+    expr1 = "A AND (B OR NOT C)"
+    expr2 = "A * (B + !C)"
+    
+    A, B, C = sp.symbols('A B C')
+    expected = And(A, Or(B, Not(C)))
+    
+    assert text_to_logic(expr1) == expected
+    assert text_to_logic(expr2) == expected
+
