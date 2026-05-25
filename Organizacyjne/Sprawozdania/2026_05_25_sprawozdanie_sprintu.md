@@ -1,4 +1,4 @@
-# Sprawozdanie z prac projektowych - Frontend
+# Sprawozdanie z prac projektowych
 **Data:** 25.05.2026
 **Autor:** Wiktor
 
