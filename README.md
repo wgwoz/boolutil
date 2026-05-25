@@ -3,6 +3,13 @@ Tool for help with logic gates and functions
 
 Wszechstronne narzędzie do projektowania układów na bramkach logicznych i przerzutnikach. Projekt łączy intuicyjny interfejs przeglądarkowy z potężnym silnikiem matematycznym w Pythonie, umożliwiając łatwą analizę, upraszczanie i transformację funkcji logicznych.
 
+## Zespół Projektowy
+
+Projekt realizowany w ramach metodyki SCRUM.
+
+* **Frontend:** Maciej Karolak, Jan Habdas
+* **Backend:** Wiktor Gwoździewicz, Piotr Jaworski
+
 ##  Główne funkcjonalności
 
 * **Wprowadzanie wyrażeń z klawiatury:** Inteligentny parser obsługujący popularne operatory logiczne (AND, OR, NOT, XOR) w wielu formatach notacyjnych (np. `*`, `+`, `!`, `~`, `&`, `|`).
@@ -16,7 +23,7 @@ Obecna wersja aplikacji skupia się na dostarczeniu stabilnego fundamentu operac
 - [x] Backend wykrywający zmienne i formatujący wyrażenia.
 - [x] Logika upraszczania funkcji oraz konwersji do postaci NAND.
 - [x] Interfejs użytkownika z generatorem tabel prawdy.
-- [ ] Integracja API pomiędzy warstwą Frontend a Backend.
+- [x] Integracja API pomiędzy warstwą Frontend a Backend.
 - [ ] Renderowanie graficznych schematów bramek (planowane w przyszłych wydaniach).
 
 ##  Technologie
