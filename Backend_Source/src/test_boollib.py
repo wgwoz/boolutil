@@ -20,3 +20,12 @@ def test_text_to_logic_basic_and():
     assert text_to_logic("A n B") == expected
     assert text_to_logic("A & B") == expected
     
+def test_text_to_logic_basic_or():
+    """Test podstawowej alternatywy (OR) dla różnych formatów zapisu."""
+    expected = Or(sp.Symbol('A'), sp.Symbol('B'))
+    
+    assert text_to_logic("A OR B") == expected
+    assert text_to_logic("A + B") == expected
+    assert text_to_logic("A v B") == expected
+    assert text_to_logic("A u B") == expected
+    assert text_to_logic("A | B") == expected
