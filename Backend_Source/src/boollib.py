@@ -47,35 +47,40 @@ class Expression:
         result is still numpy expressoin
         '''
         expr = self.sympy_expr
-        # 1. Base Case: If it's a variable, we're done
-        if expr.is_Atom:
-            return expr
 
-        # 2. Check for Double Negation: ~(~A) -> A
-        # If the current gate is a NOT and the child is also a NOT, skip both
-        if isinstance(expr, Not) and isinstance(expr.args[0], Not):
-            return logic_to_nand_style(expr.args[0].args[0])
+        def convert(e):
+            # Atom (variable or constant)
+            if getattr(e, "is_Atom", False):
+                return e
 
-        # 3. Recursively convert all child arguments
-        args = [logic_to_nand_style(arg) for arg in expr.args]
+            # NOT: ~A -> NAND(A, A)
+            if isinstance(e, Not):
+                child = convert(e.args[0])
+                return Nand(child, child)
 
-        # Helper: Visual NAND gate ~(A & B)
-        def NAND_GATE(*inputs):
-            return Not(And(*inputs, evaluate=False), evaluate=False)
+            # AND: A & B -> NAND(NAND(A,B), NAND(A,B))
+            if isinstance(e, And):
+                conv_args = [convert(a) for a in e.args]
+                nand_all = Nand(*conv_args)
+                return Nand(nand_all, nand_all)
 
-        # 4. NAND Mapping
-        if isinstance(expr, Not):
-            return Not(args[0])
+            # OR: A | B -> NAND(NAND(A,A), NAND(B,B))  (generalized)
+            if isinstance(e, Or):
+                conv_args = [convert(a) for a in e.args]
+                not_args = [Nand(a, a) for a in conv_args]
+                return Nand(*not_args)
 
-        if isinstance(expr, And):
-            inner = NAND_GATE(*args)
-            return NAND_GATE(inner, inner)
+            # Fallback: try to recursively convert args and apply Nand on them
+            if hasattr(e, "args") and e.args:
+                conv_args = [convert(a) for a in e.args]
+                return Nand(*conv_args)
 
-        if isinstance(expr, Or):
-            not_args = [Not(a) for a in args]
-            return Nand(*not_args)
+            return e
 
-        self.Nand_form = expr
+        result = convert(expr)
+        # store the converted form on the instance for later use
+        self.Nand_form = result
+        return result
 
     
     def get_minterms_and_dontcares(self, vars=None, expr=None):

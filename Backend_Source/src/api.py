@@ -25,6 +25,7 @@ class ExpressionOut(BaseModel):
     sympy_expr: str
     vars: List[str]
     ttable_readable: Optional[Tuple[List[List[int]], List[List[int]]]]
+    nand_sympy_expr: Optional[str]
 
 
 @app.post("/expression", response_model=ExpressionOut)
@@ -51,6 +52,37 @@ def create_expression(payload: ExpressionIn):
         sympy_expr=sympy_str,
         vars=vars_list,
         ttable_readable=ttable,
+    )
+
+
+
+@app.post("/expression/nand", response_model=ExpressionOut)
+def create_expression_nand(payload: ExpressionIn):
+    """Create an Expression from plaintext, convert it to NAND-only form, and return JSON-friendly representation including the NAND form."""
+    try:
+        expr = Expression(plaintext=payload.plaintext)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        nand_result = expr.logic_to_nand_style()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"NAND conversion failed: {e}")
+
+    sympy_str = str(expr.sympy_expr) if hasattr(expr, "sympy_expr") and expr.sympy_expr is not None else ""
+    vars_list = [str(v) for v in expr.vars] if hasattr(expr, "vars") and expr.vars is not None else []
+    ttable = None
+    if hasattr(expr, "ttable_readable"):
+        ttable = expr.ttable_readable
+
+    nand_str = str(nand_result) if nand_result is not None else (str(expr.Nand_form) if hasattr(expr, "Nand_form") else "")
+
+    return ExpressionOut(
+        plaintext=expr.plaintext,
+        sympy_expr=sympy_str,
+        vars=vars_list,
+        ttable_readable=ttable,
+        nand_sympy_expr=nand_str,
     )
 
 
