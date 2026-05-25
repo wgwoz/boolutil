@@ -84,3 +84,16 @@ def test_logic_to_nand_style_double_negation():
     A = sp.Symbol('A')
     double_not = Not(Not(A))
     assert logic_to_nand_style(double_not) == A
+
+def test_logic_to_nand_style_and_conversion():
+    """Test konwersji bramki AND na strukturę NAND: A & B -> ~(~(A & B) & ~(A & B))"""
+    A, B = sp.symbols('A B')
+    expr_and = And(A, B)
+    
+    result = logic_to_nand_style(expr_and)
+    
+    # Sprawdzamy surową strukturę bramek (z wyłączoną auto-ewaluacją SymPy)
+    inner = Not(And(A, B, evaluate=False), evaluate=False)
+    expected = Not(And(inner, inner, evaluate=False), evaluate=False)
+    
+    assert result == expected
