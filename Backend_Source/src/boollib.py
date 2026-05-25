@@ -15,22 +15,28 @@ class Expression:
         if plaintext is not None:
             self.plaintext = plaintext
             self.sympy_expr = self.text_to_logic(plaintext)
-            self.vars = self.sympy_expr.atoms(sp.Symbol)
-            self.ttable_readable = self.get_minterms_and_dontcares( self.vars,self.sympy_expr)
+            self.vars = sorted(self.sympy_expr.atoms(sp.Symbol), key=lambda s: str(s))
+            self.ttable_readable = self.get_minterms_and_dontcares(self.vars, self.sympy_expr)
             self.Nand_form = None
         elif sympy_expr is not None:
             self.sympy_expr = sympy_expr
-            self.vars = self.sympy_expr.atoms(sp.Symbol)
+            self.vars = sorted(self.sympy_expr.atoms(sp.Symbol), key=lambda s: str(s))
             self.plaintext = str(sympy_expr)
-            self.ttable_readable = self.get_minterms_and_dontcares( self.vars,self.sympy_expr)
+            self.ttable_readable = self.get_minterms_and_dontcares(self.vars, self.sympy_expr)
             self.Nand_form = None
         elif ttable_readable is not None and vars is not None:
             self.ttable_readable = ttable_readable
             self.vars = vars
-            self.sympy_expr = sp.logic.boolalg.SOPform(vars, ttable_readable[0], ttable_readable[1])
+
+            def row_to_index(row_bits):
+                if isinstance(row_bits, (list, tuple)):
+                    return int(''.join(str(int(b)) for b in row_bits), 2)
+                return int(row_bits)
+
+            minterms = [row_to_index(row) for row in ttable_readable[0]]
+            dontcares = [row_to_index(row) for row in ttable_readable[1]]
+            self.sympy_expr = sp.logic.boolalg.SOPform(vars, minterms, dontcares)
             self.plaintext = str(self.sympy_expr)
-            
-            
             self.Nand_form = None
         else:
             raise ValueError("Invalid input: Provide either plaintext, sympy_expr, or ttable_readable with vars.")
@@ -88,13 +94,13 @@ class Expression:
         # Create a truth table: returns rows as bit-vectors paired with output values.
         table = list(truth_table(expr, list(vars)))
 
-        def row_to_index(row_bits):
+        def row_to_list(row_bits):
             if isinstance(row_bits, (list, tuple)):
-                return int(''.join(str(int(b)) for b in row_bits), 2)
-            return int(row_bits)
+                return [int(b) for b in row_bits]
+            return [int(row_bits)]
 
-        minterms = [row_to_index(row) for row, value in table if value is True]
-        dontcares = [row_to_index(row) for row, value in table if value is None]
+        minterms = [row_to_list(row) for row, value in table if value == True]
+        dontcares = [row_to_list(row) for row, value in table if value is None]
 
         self.ttable_readable = (minterms, dontcares)
         return self.ttable_readable

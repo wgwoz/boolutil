@@ -24,7 +24,7 @@ class ExpressionOut(BaseModel):
     plaintext: str
     sympy_expr: str
     vars: List[str]
-    ttable_readable: Optional[Tuple[List[int], List[int]]]
+    ttable_readable: Optional[Tuple[List[List[int]], List[List[int]]]]
 
 
 @app.post("/expression", response_model=ExpressionOut)
