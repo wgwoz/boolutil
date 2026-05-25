@@ -17,7 +17,10 @@ app = FastAPI()
 
 
 class ExpressionIn(BaseModel):
-    plaintext: str
+    plaintext: Optional[str] = None
+    sympy_expr: Optional[str] = None
+    vars: Optional[List[str]] = None
+    ttable_readable: Optional[Tuple[List[List[int]], List[List[int]]]] = None
 
 
 class ExpressionOut(BaseModel):
@@ -35,8 +38,16 @@ def create_expression(payload: ExpressionIn):
     The returned object contains the original plaintext, a stringified sympy expression,
     list of variable names, and the truth-table readable tuple (minterms, dontcares) when available.
     """
+    # Build Expression using whichever input variant was provided
     try:
-        expr = Expression(plaintext=payload.plaintext)
+        if payload.plaintext is not None:
+            expr = Expression(plaintext=payload.plaintext)
+        elif payload.sympy_expr is not None:
+            expr = Expression(sympy_expr=payload.sympy_expr)
+        elif payload.ttable_readable is not None and payload.vars is not None:
+            expr = Expression(ttable_readable=payload.ttable_readable, vars=payload.vars)
+        else:
+            raise ValueError("Provide one of: plaintext, sympy_expr, or ttable_readable with vars")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -60,7 +71,14 @@ def create_expression(payload: ExpressionIn):
 def create_expression_nand(payload: ExpressionIn):
     """Create an Expression from plaintext, convert it to NAND-only form, and return JSON-friendly representation including the NAND form."""
     try:
-        expr = Expression(plaintext=payload.plaintext)
+        if payload.plaintext is not None:
+            expr = Expression(plaintext=payload.plaintext)
+        elif payload.sympy_expr is not None:
+            expr = Expression(sympy_expr=payload.sympy_expr)
+        elif payload.ttable_readable is not None and payload.vars is not None:
+            expr = Expression(ttable_readable=payload.ttable_readable, vars=payload.vars)
+        else:
+            raise ValueError("Provide one of: plaintext, sympy_expr, or ttable_readable with vars")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
