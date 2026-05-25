@@ -19,14 +19,36 @@ class Expression:
             self.ttable_readable = self.get_minterms_and_dontcares(self.vars, self.sympy_expr)
             self.Nand_form = None
         elif sympy_expr is not None:
+            # Accept sympy expressions or string representations
+            if isinstance(sympy_expr, str):
+                sympy_expr = sp.sympify(sympy_expr)
+
             self.sympy_expr = sympy_expr
             self.vars = sorted(self.sympy_expr.atoms(sp.Symbol), key=lambda s: str(s))
-            self.plaintext = str(sympy_expr)
+            self.plaintext = str(self.sympy_expr)
             self.ttable_readable = self.get_minterms_and_dontcares(self.vars, self.sympy_expr)
             self.Nand_form = None
         elif ttable_readable is not None and vars is not None:
             self.ttable_readable = ttable_readable
-            self.vars = vars
+            # Normalize vars: accept list of symbol names or sympy.Symbols
+            normalized_vars = []
+            for v in vars:
+                if isinstance(v, sp.Symbol):
+                    normalized_vars.append(v)
+                elif isinstance(v, str):
+                    normalized_vars.append(sp.Symbol(v))
+                else:
+                    # Attempt to coerce via sympify then extract symbols
+                    try:
+                        sv = sp.sympify(v)
+                        if isinstance(sv, sp.Symbol):
+                            normalized_vars.append(sv)
+                        else:
+                            raise ValueError(f"Invalid var: {v}")
+                    except Exception:
+                        raise ValueError(f"Invalid var: {v}")
+
+            self.vars = normalized_vars
 
             def row_to_index(row_bits):
                 if isinstance(row_bits, (list, tuple)):
@@ -35,7 +57,7 @@ class Expression:
 
             minterms = [row_to_index(row) for row in ttable_readable[0]]
             dontcares = [row_to_index(row) for row in ttable_readable[1]]
-            self.sympy_expr = sp.logic.boolalg.SOPform(vars, minterms, dontcares)
+            self.sympy_expr = sp.logic.boolalg.SOPform(self.vars, minterms, dontcares)
             self.plaintext = str(self.sympy_expr)
             self.Nand_form = None
         else:
@@ -190,18 +212,29 @@ class Expression:
    
 
 if __name__ == "__main__":
-
+    # Simple interactive loop for manual testing
     while True:
         test_input = input("Enter equation (or 'stop' to exit): ")
         if test_input == "stop":
             break
-        processed = text_to_logic(test_input)
-        a = Expression(plaintext=test_input)
-        print(a.ttable_readable)
 
+        try:
+            expr = Expression(plaintext=test_input)
+        except Exception as e:
+            print("Failed to parse expression:", e)
+            continue
 
-        print(f"Processed: {processed}")
-        processed = simplify_expression(processed)
-        print(f"Simplified: {processed}")
-        processed = logic_to_nand_style(processed)
-        print(f"Nandified: {processed}")
+        print("Truth table (minterms, dontcares):", expr.ttable_readable)
+        print(f"Processed (sympy): {expr.sympy_expr}")
+
+        try:
+            simplified = simplify_logic(expr.sympy_expr)
+            print(f"Simplified: {simplified}")
+        except Exception as e:
+            print("Simplify failed:", e)
+
+        try:
+            nandified = expr.logic_to_nand_style()
+            print(f"Nandified: {nandified}")
+        except Exception as e:
+            print("NAND conversion failed:", e)

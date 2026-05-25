@@ -24,8 +24,8 @@ class ExpressionOut(BaseModel):
     plaintext: str
     sympy_expr: str
     vars: List[str]
-    ttable_readable: Optional[Tuple[List[List[int]], List[List[int]]]]
-    nand_sympy_expr: Optional[str]
+    ttable_readable: Optional[Tuple[List[List[int]], List[List[int]]]] = None
+    nand_sympy_expr: Optional[str] = None
 
 
 @app.post("/expression", response_model=ExpressionOut)
