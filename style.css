@@ -1,0 +1,98 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121214;
+    color: #e1e1e6;
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sekcja {
+    background-color: #202024;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+h3 {
+    color: #00adb5;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #29292e;
+    padding-bottom: 10px;
+}
+
+input[type="text"], input[type="number"] {
+    background-color: #121214;
+    border: 2px solid #29292e;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 8px 12px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #00adb5;
+    outline: none;
+}
+
+button {
+    background-color: #00adb5;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 9px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #008c95;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #121214;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+th {
+    background-color: #29292e;
+    color: #00adb5;
+    font-weight: bold;
+    border: 1px solid #202024;
+    padding: 12px;
+}
+
+td {
+    border: 1px solid #202024;
+    padding: 10px;
+    text-align: center;
+    color: #a8a8b3;
+}
+
+.wynik-btn {
+    background-color: #29292e;
+    color: #e1e1e6;
+    border: 1px solid #3e3e4a;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.wynik-btn:hover {
+    background-color: #3e3e4a;
+    border-color: #00adb5;
+}
