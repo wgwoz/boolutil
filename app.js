@@ -4,7 +4,7 @@ document.body.innerHTML = '';
 // SEKCJA 1: Wpisanie funkcji ręcznie
 // ==========================================
 const sekcjaTekstowa = document.createElement('div');
-sekcjaTekstowa.style.marginBottom = '40px'; 
+sekcjaTekstowa.className = 'sekcja'; 
 
 const tytul1 = document.createElement('h3');
 tytul1.innerText = '1. Wpisz funkcję logiczną z klawiatury:';
@@ -23,11 +23,45 @@ sekcjaTekstowa.appendChild(poleTekstowe);
 sekcjaTekstowa.appendChild(przyciskTekst);
 document.body.appendChild(sekcjaTekstowa);
 
+przyciskTekst.addEventListener('click', () => {
+    // Pobieramy tekst i automatycznie zamieniamy na WIELKIE LITERY
+    const tekstFunkcji = poleTekstowe.value.trim().toUpperCase(); 
+    
+    if (!tekstFunkcji) {
+        alert('Wpisz najpierw formułę logiczną!');
+        return;
+    }
+
+    const payload = {
+        plaintext: tekstFunkcji
+    };
+
+    fetch('http://127.0.0.1:8000/expression', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`Błąd: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        alert(`Sukces (Sekcja Tekstowa)!\nFormuła: ${data.sympy_expr}\nZmienne: ${data.vars.join(', ')}`);
+    })
+    .catch(error => {
+        console.error(error);
+        alert('Błąd połączenia z backendem przy wysyłaniu tekstu!');
+    });
+});
+
 
 // ==========================================
 // SEKCJA 2: Generator Tabeli Prawdy
 // ==========================================
 const sekcjaTabeli = document.createElement('div');
+sekcjaTabeli.className = 'sekcja';
 
 const tytul2 = document.createElement('h3');
 tytul2.innerText = '2. Lub wygeneruj tabelę prawdy:';
@@ -61,26 +95,18 @@ przyciskGeneruj.addEventListener('click', () => {
     
     const ileZmiennych = parseInt(poleIloscZmiennych.value);
     const tabela = document.createElement('table');
-    tabela.style.borderCollapse = "collapse";
-    tabela.style.marginTop = "20px";
     
-    // Nagłówki
     const wierszNaglowkowy = document.createElement('tr');
     for (let i = 0; i < ileZmiennych; i++) {
         const th = document.createElement('th');
         th.innerText = `X${i + 1}`;
-        th.style.border = "1px solid black";
-        th.style.padding = "8px";
         wierszNaglowkowy.appendChild(th);
     }
     const thWynik = document.createElement('th');
     thWynik.innerText = "Wynik (Y)";
-    thWynik.style.border = "1px solid black";
-    thWynik.style.padding = "8px";
     wierszNaglowkowy.appendChild(thWynik);
     tabela.appendChild(wierszNaglowkowy);
 
-    // Generowanie wierszy
     const liczbaWierszy = Math.pow(2, ileZmiennych);
     for (let i = 0; i < liczbaWierszy; i++) {
         const wiersz = document.createElement('tr');
@@ -89,17 +115,10 @@ przyciskGeneruj.addEventListener('click', () => {
         for (let bit of binarnie) {
             const komorka = document.createElement('td');
             komorka.innerText = bit;
-            komorka.style.border = "1px solid black";
-            komorka.style.padding = "8px";
-            komorka.style.textAlign = "center";
             wiersz.appendChild(komorka);
         }
 
         const wynikTd = document.createElement('td');
-        wynikTd.style.border = "1px solid black";
-        wynikTd.style.padding = "8px";
-        
-        // Cykliczny przycisk
         const poleWyniku = document.createElement('button');
         poleWyniku.innerText = '0'; 
         poleWyniku.className = 'wynik-btn'; 
@@ -125,23 +144,54 @@ przyciskGeneruj.addEventListener('click', () => {
     
     kontenerNaTabele.appendChild(tabela);
 
-    // PRZYWRÓCONY PRZYCISK WYSYŁANIA
     const przyciskWyslijTabele = document.createElement('button');
     przyciskWyslijTabele.innerText = 'Wyślij wyniki z tabeli';
     przyciskWyslijTabele.style.marginTop = '15px';
     kontenerNaTabele.appendChild(przyciskWyslijTabele);
 
-    // LOGIKA ZBIERANIA DANYCH PODPIĘTA POD PRZYCISK WYSYŁANIA
     przyciskWyslijTabele.addEventListener('click', () => {
         const wszystkiePola = kontenerNaTabele.querySelectorAll('.wynik-btn');
-        const zebraneWyniki = [];
+        const minterms = [];
+        const dontcares = [];
+        const naglowki = Array.from(tabela.querySelectorAll('th')).slice(0, ileZmiennych).map(th => th.innerText);
 
-        wszystkiePola.forEach(pole => {
-            zebraneWyniki.push(pole.innerText);
+        wszystkiePola.forEach((pole, index) => {
+            // Konwertujemy numer wiersza na tablicę intów, np. 3 -> [0, 1, 1]
+            const kombinacjaBinarna = index.toString(2)
+                .padStart(ileZmiennych, '0')
+                .split('')
+                .map(bit => parseInt(bit));
+
+            if (pole.innerText === '1') {
+                minterms.push(kombinacjaBinarna); 
+            } else if (pole.innerText === '-') {
+                dontcares.push(kombinacjaBinarna); 
+            }
         });
 
-        console.log("Paczka dla backendu:", zebraneWyniki);
-        alert("Zebrano dane! Zobacz konsolę (F12).");
+        const payload = {
+            vars: naglowki,
+            ttable_readable: [minterms, dontcares]
+        };
+
+        fetch('http://127.0.0.1:8000/expression/nand', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(`Błąd: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            alert(`Sukces!\nFormuła: ${data.sympy_expr}\nPostać NAND: ${data.nand_sympy_expr || 'Brak'}`);
+        })
+        .catch(error => {
+            console.error(error);
+            alert('Nie udało się połączyć z backendem. Upewnij się, że serwer Pythona działa na porcie 8000!');
+        });
     });
 });
 
